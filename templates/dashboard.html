@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · Infra Monitor{% endblock %}
+{% block page_title %}Overview{% endblock %}
+{% block page_subtitle %}Live local Jumpbox metrics (psutil){% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div class="alert alert-panel mb-0 flex-grow-1" role="status">
+    <strong>Local monitoring.</strong>
+    Metrics refresh every <span id="refresh-interval-label">10</span>s via authenticated API.
+    Remote SSH collectors are not enabled yet.
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <span class="text-muted small" id="last-updated">Last updated: —</span>
+    <button type="button" class="btn btn-refresh" id="btn-refresh">Refresh now</button>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-lg-4">
+    <div class="metric-card metric-card--status h-100">
+      <div class="metric-card__header">
+        <span class="metric-card__title">Server status</span>
+        <span class="status-pill" id="status-pill">—</span>
+      </div>
+      <div class="d-flex align-items-center gap-2 mt-2">
+        <span class="status-dot" id="status-dot"></span>
+        <span class="metric-card__value metric-card__value--sm" id="status-text">Loading…</span>
+      </div>
+      <dl class="meta-list mt-3 mb-0">
+        <div class="d-flex justify-content-between"><dt>Name</dt><dd id="meta-name">{{ local_server_name }}</dd></div>
+        <div class="d-flex justify-content-between"><dt>Hostname</dt><dd id="meta-hostname">—</dd></div>
+        <div class="d-flex justify-content-between"><dt>IP</dt><dd id="meta-ip">—</dd></div>
+        <div class="d-flex justify-content-between"><dt>OS / kernel</dt><dd id="meta-os">—</dd></div>
+        <div class="d-flex justify-content-between"><dt>Uptime</dt><dd id="meta-uptime">—</dd></div>
+        <div class="d-flex justify-content-between"><dt>Load (1/5/15)</dt><dd id="meta-load">—</dd></div>
+        <div class="d-flex justify-content-between"><dt>CPU cores</dt><dd id="meta-cores">—</dd></div>
+      </dl>
+      <p class="metric-card__hint mt-2 mb-0" id="meta-error" hidden></p>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="metric-card h-100">
+      <div class="metric-card__header">
+        <span class="metric-card__title">CPU</span>
+        <span class="threshold-pill" id="cpu-threshold">—</span>
+      </div>
+      <div class="metric-card__value" id="cpu-value">—</div>
+      <div class="metric-card__hint" id="cpu-hint">Utilization</div>
+      <canvas id="chart-cpu" height="120"></canvas>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="metric-card h-100">
+      <div class="metric-card__header">
+        <span class="metric-card__title">Memory</span>
+        <span class="threshold-pill" id="mem-threshold">—</span>
+      </div>
+      <div class="metric-card__value" id="mem-value">—</div>
+      <div class="metric-card__hint" id="mem-hint">Used / total</div>
+      <canvas id="chart-mem" height="120"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-md-6">
+    <div class="metric-card h-100">
+      <div class="metric-card__header">
+        <span class="metric-card__title">Disk (/)</span>
+        <span class="threshold-pill" id="disk-threshold">—</span>
+      </div>
+      <div class="metric-card__value" id="disk-value">—</div>
+      <div class="metric-card__hint" id="disk-hint">Used / total</div>
+      <canvas id="chart-disk" height="120"></canvas>
+    </div>
+  </div>
+  <div class="col-12 col-md-6">
+    <div class="metric-card h-100">
+      <div class="metric-card__header">
+        <span class="metric-card__title">Network</span>
+        <span class="metric-card__tag">Throughput</span>
+      </div>
+      <div class="metric-card__value metric-card__value--sm" id="net-value">—</div>
+      <div class="metric-card__hint" id="net-hint">Upload / download</div>
+      <canvas id="chart-net" height="120"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-5">
+    <div class="metric-card h-100">
+      <div class="metric-card__header">
+        <span class="metric-card__title">Listening ports</span>
+        <span class="metric-card__tag" id="ports-count">0</span>
+      </div>
+      <div class="table-responsive ports-scroll">
+        <table class="table table-darkish mb-0">
+          <thead>
+            <tr><th>Port</th><th>Protocol</th><th>Status</th></tr>
+          </thead>
+          <tbody id="ports-body">
+            <tr><td colspan="3" class="text-muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-7">
+    <div class="metric-card h-100">
+      <div class="metric-card__header">
+        <span class="metric-card__title">Servers</span>
+        <span class="metric-card__tag">Local</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-darkish mb-0">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>CPU</th>
+              <th>Memory</th>
+            </tr>
+          </thead>
+          <tbody id="servers-body">
+            <tr><td colspan="5" class="text-muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<script>
+  window.INFRA_MONITOR = {
+    refreshMs: 10000,
+    localServerId: {{ local_server_id|tojson }},
+    metricsUrl: {{ url_for('api.api_all_metrics')|tojson }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
