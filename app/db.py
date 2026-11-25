@@ -136,3 +136,22 @@ def update_server_host(server_id: int, name: str, host: str | None) -> None:
         (name, host, server_id),
     )
     db.commit()
+
+
+def count_servers() -> int:
+    row = get_db().execute("SELECT COUNT(*) AS n FROM servers").fetchone()
+    return int(row["n"])
+
+
+def get_server_by_name(name: str) -> sqlite3.Row | None:
+    return get_db().execute(
+        "SELECT * FROM servers WHERE name = ?",
+        (name,),
+    ).fetchone()
+
+
+def delete_server(server_id: int) -> int:
+    db = get_db()
+    cur = db.execute("DELETE FROM servers WHERE id = ?", (server_id,))
+    db.commit()
+    return int(cur.rowcount)

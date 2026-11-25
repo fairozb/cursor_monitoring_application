@@ -21,7 +21,7 @@ Database file: `instance/monitor.db` (gitignored).
 | ssh_port | INTEGER | Default 22 (remote later) |
 | ssh_username | TEXT | Remote later |
 | ssh_key_path | TEXT | Path reference only — never key material |
-| server_type | TEXT | `local` (Jumpbox via psutil); remote/demo later |
+| server_type | TEXT | `local` (psutil), `remote` (SSH key path only), `demo` (simulated) |
 | enabled | INTEGER | 1/0 |
 | created_at | TEXT | ISO-8601 UTC |
 

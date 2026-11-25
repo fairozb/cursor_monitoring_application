@@ -22,15 +22,22 @@ def create_app(config_class=Config):
     from app.api.routes import bp as api_bp
     from app.auth.routes import bp as auth_bp
     from app.routes import bp as main_bp
+    from app.servers.routes import bp as servers_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(servers_bp)
 
     with app.app_context():
-        from app.bootstrap import bootstrap_admin, bootstrap_local_server
+        from app.bootstrap import (
+            bootstrap_admin,
+            bootstrap_demo_servers,
+            bootstrap_local_server,
+        )
 
         bootstrap_admin()
         bootstrap_local_server()
+        bootstrap_demo_servers()
 
     return app

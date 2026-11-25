@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Servers · Infra Monitor{% endblock %}
+{% block page_title %}Servers{% endblock %}
+{% block page_subtitle %}Inventory · {{ server_count }} / {{ max_servers }}{% endblock %}
+
+{% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="alert alert-panel mb-3" role="status">{{ message }}</div>
+  {% endfor %}
+{% endwith %}
+
+<div class="row g-3">
+  <div class="col-12 col-lg-7">
+    <div class="metric-card">
+      <div class="metric-card__header">
+        <span class="metric-card__title">Inventory</span>
+        <span class="metric-card__tag">{{ server_count }} / {{ max_servers }}</span>
+      </div>
+      <div class="table-responsive mt-3">
+        <table class="table table-darkish mb-0">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Host</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for server in servers %}
+            <tr>
+              <td><a class="server-link" href="{{ url_for('main.server_detail', server_id=server.id) }}">{{ server.name }}</a></td>
+              <td>{{ server.server_type }}{% if server.server_type == 'demo' %} <span class="metric-card__tag">Simulated</span>{% endif %}</td>
+              <td>{{ server.host or "—" }}</td>
+              <td class="text-end">
+                {% if server.server_type != 'local' %}
+                <form method="post" action="{{ url_for('servers.remove', server_id=server.id) }}" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-logout">Remove</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted">No servers</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-5">
+    <div class="metric-card">
+      <div class="metric-card__header">
+        <span class="metric-card__title">Add server</span>
+      </div>
+      <p class="metric-card__hint">Remote rows store a key path only. Demo rows are simulated and labelled.</p>
+      <form method="post" action="{{ url_for('servers.add') }}" class="inventory-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-2">
+          <label class="form-label login-label" for="name">Name</label>
+          <input class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label login-label" for="server_type">Type</label>
+          <select class="form-select" id="server_type" name="server_type">
+            <option value="remote">remote</option>
+            <option value="demo">demo (simulated)</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label login-label" for="host">Host</label>
+          <input class="form-control" id="host" name="host" placeholder="hostname or IP">
+        </div>
+        <div class="mb-2">
+          <label class="form-label login-label" for="ssh_port">SSH port</label>
+          <input class="form-control" id="ssh_port" name="ssh_port" value="22">
+        </div>
+        <div class="mb-2">
+          <label class="form-label login-label" for="ssh_username">SSH username</label>
+          <input class="form-control" id="ssh_username" name="ssh_username">
+        </div>
+        <div class="mb-3">
+          <label class="form-label login-label" for="ssh_key_path">SSH key path</label>
+          <input class="form-control" id="ssh_key_path" name="ssh_key_path" placeholder="/home/user/.ssh/id_ed25519">
+        </div>
+        <button class="btn btn-login" type="submit" {% if server_count >= max_servers %}disabled{% endif %}>Add server</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

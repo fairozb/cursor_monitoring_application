@@ -53,3 +53,22 @@ class Config:
     SESSION_COOKIE_SECURE = False
 
     WTF_CSRF_ENABLED = True
+    MAX_SERVERS = 5
+
+
+def demo_mode_enabled() -> bool:
+    return os.environ.get("DEMO_MODE", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def ssh_connect_timeout() -> float:
+    try:
+        return max(1.0, float(os.environ.get("SSH_CONNECT_TIMEOUT", "10")))
+    except ValueError:
+        return 10.0
+
+
+def ssh_command_timeout() -> float:
+    try:
+        return max(1.0, float(os.environ.get("SSH_COMMAND_TIMEOUT", "8")))
+    except ValueError:
+        return 8.0
