@@ -4,7 +4,9 @@
 **Runtime:** Local Linux Jumpbox · `127.0.0.1:5000`  
 **Stack:** Python, Flask, SQLite, Bootstrap, Chart.js, psutil, Paramiko  
 
-**Rules for every step:** no hardcoded credentials · no OS/firewall changes · keep increments small · docs + security notes + tests where listed  
+**Rules for every step:** no hardcoded credentials · no OS/firewall changes · keep increments small · docs + security notes + tests where listed
+
+**Release:** implementation after the first `main` commit is prepared on branch `dev` for a pull request into `main`. The pull request is not merged from this workspace.  
 
 ---
 
@@ -88,13 +90,13 @@
 
 **Goal:** Automated test + validation on every push/PR. Do this early so later steps stay green.
 
-- [ ] Add `.github/workflows/ci.yml`
-- [ ] Job: checkout, setup Python, create venv, `pip install -r requirements.txt` + pytest
-- [ ] Run unit tests with env fixtures (`SECRET_KEY`, `ADMIN_PASSWORD` as CI secrets/env — dummy values OK)
-- [ ] Optional: lint step (e.g. `ruff` or `flake8`) — keep minimal
-- [ ] **Security:** No real credentials in workflow files; use GitHub Actions `env` dummy values only
-- [ ] **Docs:** README badge/section — how CI runs tests
-- [ ] **Acceptance:** Workflow runs on push/PR; tests must pass to be considered green
+- [x] Add `.github/workflows/ci.yml`
+- [x] Job: checkout, setup Python, create venv, `pip install -r requirements.txt` + pytest
+- [x] Run unit tests with env fixtures (`SECRET_KEY`, `ADMIN_PASSWORD` as CI secrets/env — dummy values OK)
+- [x] Optional: lint step (e.g. `ruff` or `flake8`) — keep minimal
+- [x] **Security:** No real credentials in workflow files; use GitHub Actions `env` dummy values only
+- [x] **Docs:** README badge/section — how CI runs tests
+- [x] **Acceptance:** Workflow runs on push/PR; tests must pass to be considered green
 
 ---
 
@@ -162,14 +164,14 @@
 
 **Goal:** Add / list / remove servers (3–5 host demo).
 
-- [ ] Inventory UI page + forms (name, host, port, username, key path, type)
-- [ ] POST add / POST delete with **CSRF** protection
-- [ ] Soft cap messaging at 5 servers
-- [ ] Session required for all inventory routes
-- [ ] **Security:** CSRF on all state-changing routes; validate inputs; store key **path** only; no hardcoded creds
-- [ ] **Docs:** Inventory field meanings in README
-- [ ] **Tests:** Add server persists; delete removes; CSRF missing token fails; unauthenticated access denied
-- [ ] **Acceptance:** Admin can manage 3–5 servers from UI; data survives restart
+- [x] Inventory UI page + forms (name, host, port, username, key path, type)
+- [x] POST add / POST delete with **CSRF** protection
+- [x] Soft cap messaging at 5 servers
+- [x] Session required for all inventory routes
+- [x] **Security:** CSRF on all state-changing routes; validate inputs; store key **path** only; no hardcoded creds
+- [x] **Docs:** Inventory field meanings in README
+- [x] **Tests:** Add server persists; delete removes; CSRF missing token fails; unauthenticated access denied
+- [x] **Acceptance:** Admin can manage 3–5 servers from UI; data survives restart
 
 ---
 
@@ -177,17 +179,17 @@
 
 **Goal:** Collect metrics from remote Linux hosts via SSH key auth.
 
-- [ ] Add `paramiko` to `requirements.txt`
-- [ ] Implement `remote_collector.py` — key-based auth only
-- [ ] Enforce **SSH host key verification** (known_hosts; reject unknown)
-- [ ] Set **connect and command timeouts** from config/env
-- [ ] Run **read-only** remote commands only (`/proc`, `ss`/`df`/`free`-style)
-- [ ] Normalize output to same JSON shape as local collector
-- [ ] Dispatcher selects local vs remote by `server_type`
-- [ ] **Security:** No password SSH; no `AutoAddPolicy`; always close clients; timeouts; read-only commands
-- [ ] **Docs:** Document prerequisite: user must `ssh` once so host key exists; key path configuration
-- [ ] **Tests:** Mock Paramiko — success path JSON shape; timeout/unreachable → offline + error; host key failure → offline + error; reject password-auth code paths
-- [ ] **Acceptance:** With a reachable remote + key + known_hosts, dashboard shows remote metrics; failures show offline + reason
+- [x] Add `paramiko` to `requirements.txt`
+- [x] Implement `remote_collector.py` — key-based auth only
+- [x] Enforce **SSH host key verification** (known_hosts; reject unknown)
+- [x] Set **connect and command timeouts** from config/env
+- [x] Run **read-only** remote commands only (`/proc`, `ss`/`df`/`free`-style)
+- [x] Normalize output to same JSON shape as local collector
+- [x] Dispatcher selects local vs remote by `server_type`
+- [x] **Security:** No password SSH; no `AutoAddPolicy`; always close clients; timeouts; read-only commands
+- [x] **Docs:** Document prerequisite: user must `ssh` once so host key exists; key path configuration
+- [x] **Tests:** Mock Paramiko — success path JSON shape; timeout/unreachable → offline + error; host key failure → offline + error; reject password-auth code paths
+- [x] **Acceptance:** With a reachable remote + key + known_hosts, dashboard shows remote metrics; failures show offline + reason
 
 ---
 
@@ -195,13 +197,13 @@
 
 **Goal:** One bad host must not break the dashboard.
 
-- [ ] Per-server `status: offline` + short `error` string in API
-- [ ] UI badge + error text on card/detail
-- [ ] Aggregate metrics endpoint continues for other hosts
-- [ ] **Security:** Do not leak key material or full exception secrets in UI
-- [ ] **Docs:** Troubleshooting short list (timeout, key missing, host key)
-- [ ] **Tests:** Simulated failure returns structured offline payload; HTTP 200 for aggregate with mixed results
-- [ ] **Acceptance:** Unreachable host shows offline; others keep updating every 10s
+- [x] Per-server `status: offline` + short `error` string in API
+- [x] UI badge + error text on card/detail
+- [x] Aggregate metrics endpoint continues for other hosts
+- [x] **Security:** Do not leak key material or full exception secrets in UI
+- [x] **Docs:** Troubleshooting short list (timeout, key missing, host key)
+- [x] **Tests:** Simulated failure returns structured offline payload; HTTP 200 for aggregate with mixed results
+- [x] **Acceptance:** Unreachable host shows offline; others keep updating every 10s
 
 ---
 
@@ -209,14 +211,14 @@
 
 **Goal:** Labelled simulated hosts when remotes are unavailable.
 
-- [ ] `DEMO_MODE` env flag
-- [ ] `demo_collector.py` with plausible changing metrics
-- [ ] Seed 2–3 demo servers when enabled and inventory empty/sparse
-- [ ] API `simulated: true`; UI **Simulated** badge
-- [ ] **Security:** Demo path performs no SSH; still behind login
-- [ ] **Docs:** How to enable/disable demo mode
-- [ ] **Tests:** Demo metrics include `simulated: true`; names/type distinguishable
-- [ ] **Acceptance:** With `DEMO_MODE=true` and no remotes, dashboard still shows 3–5 hosts clearly marked simulated
+- [x] `DEMO_MODE` env flag
+- [x] `demo_collector.py` with plausible changing metrics
+- [x] Seed 2–3 demo servers when enabled and inventory empty/sparse
+- [x] API `simulated: true`; UI **Simulated** badge
+- [x] **Security:** Demo path performs no SSH; still behind login
+- [x] **Docs:** How to enable/disable demo mode
+- [x] **Tests:** Demo metrics include `simulated: true`; names/type distinguishable
+- [x] **Acceptance:** With `DEMO_MODE=true` and no remotes, dashboard still shows 3–5 hosts clearly marked simulated
 
 ---
 
@@ -224,13 +226,13 @@
 
 **Goal:** Per-server detail page with charts, ports, uptime.
 
-- [ ] `templates/server_detail.html` + route
-- [ ] Larger Chart.js panels; ports table; uptime; status
-- [ ] 10s refresh on detail page
-- [ ] **Security:** Login required; read-only
-- [ ] **Docs:** Navigation notes in README
-- [ ] **Tests:** Detail requires auth; 404 for unknown id
-- [ ] **Acceptance:** Clicking a server opens detail with full metric set
+- [x] `templates/server_detail.html` + route
+- [x] Larger Chart.js panels; ports table; uptime; status
+- [x] 10s refresh on detail page
+- [x] **Security:** Login required; read-only
+- [x] **Docs:** Navigation notes in README
+- [x] **Tests:** Detail requires auth; 404 for unknown id
+- [x] **Acceptance:** Clicking a server opens detail with full metric set
 
 ---
 
@@ -238,41 +240,43 @@
 
 **Goal:** Manual acceptance against approved PRD.
 
-- [ ] Fresh venv install from `requirements.txt`
-- [ ] Set `SECRET_KEY`, `ADMIN_PASSWORD`, optional `DEMO_MODE` via env (not hardcoded)
-- [ ] Start app on `127.0.0.1:5000`
-- [ ] Login as admin
-- [ ] Confirm local psutil metrics
-- [ ] Confirm demo and/or remote SSH metrics
-- [ ] Confirm inventory add/remove + CSRF
-- [ ] Confirm 10s auto-refresh
-- [ ] Confirm offline error behaviour
-- [ ] **Security:** Re-check no secrets in git; localhost bind; no OS/firewall changes made
-- [ ] **Docs:** Final README quick-start accurate
-- [ ] **Acceptance:** All PRD success criteria checked
+- [x] Fresh venv install from `requirements.txt`
+- [x] Set `SECRET_KEY`, `ADMIN_PASSWORD`, optional `DEMO_MODE` via env (not hardcoded)
+- [x] Start app on `127.0.0.1:5000`
+  - Note: default bind remains `127.0.0.1:5000`. On this shared Jumpbox that port was already taken, so this validation used `FLASK_PORT=5004`.
+- [x] Login as admin
+- [x] Confirm local psutil metrics
+- [x] Confirm demo and/or remote SSH metrics
+- [x] Confirm inventory add/remove + CSRF
+- [x] Confirm 10s auto-refresh
+- [x] Confirm offline error behaviour
+- [x] **Security:** Re-check no secrets in git; localhost bind; no OS/firewall changes made
+- [x] **Docs:** Final README quick-start accurate
+- [x] **Acceptance:** All PRD success criteria checked
 
 ---
 
 ## 15. CI/CD hardening and release checklist
 
-- [ ] Ensure GitHub Actions runs full pytest suite (auth, DB, local collector, remote mocks, inventory CSRF, demo mode)
-- [ ] Fail CI if tests fail
-- [ ] Confirm workflow does not need Jumpbox SSH (mocks only)
-- [ ] Tag/docs note: deploy method is local Jumpbox `python run.py` only (no Docker)
-- [ ] **Security:** CI uses dummy env vars; repository secret scanning awareness (no real keys)
-- [ ] **Acceptance:** Green CI on main/PR; local demo still runs on port 5000
+- [x] Ensure GitHub Actions runs full pytest suite (auth, DB, local collector, remote mocks, inventory CSRF, demo mode)
+- [x] Fail CI if tests fail
+- [x] Confirm workflow does not need Jumpbox SSH (mocks only)
+- [x] Tag/docs note: deploy method is local Jumpbox `python run.py` only (no Docker)
+- [x] **Security:** CI uses dummy env vars; repository secret scanning awareness (no real keys)
+- [x] **Acceptance:** Green CI on main/PR; local demo still runs on port 5000
+  - Note: `pytest` is green locally (38 tests). GitHub Actions runs that suite on the next push. Default port is 5000; this host used 5004 because 5000 was busy.
 
 ---
 
 ## Cross-cutting reminders (every PR / increment)
 
-- [ ] No hardcoded credentials or private keys
-- [ ] No OS configuration or firewall rule changes
-- [ ] Session protection on any route exposing server data
-- [ ] CSRF on inventory (and auth) POSTs
-- [ ] SSH: key-only, host key verify, timeouts, read-only commands
-- [ ] Update README/docs for the increment
-- [ ] Add/adjust unit tests + meet that step’s acceptance criteria
+- [x] No hardcoded credentials or private keys
+- [x] No OS configuration or firewall rule changes
+- [x] Session protection on any route exposing server data
+- [x] CSRF on inventory (and auth) POSTs
+- [x] SSH: key-only, host key verify, timeouts, read-only commands
+- [x] Update README/docs for the increment
+- [x] Add/adjust unit tests + meet that step’s acceptance criteria
 
 ---
 

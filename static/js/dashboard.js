@@ -192,16 +192,23 @@
       body.innerHTML = '<tr><td colspan="5" class="text-muted">No servers</td></tr>';
       return;
     }
+    const esc = (value) =>
+      String(value ?? "").replace(/[&<>"']/g, (ch) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])
+      );
     body.innerHTML = servers
       .map((s) => {
         const statusClass =
           s.status === "online" ? "status-pill--online" : "status-pill--offline";
         const cpu = s.cpu_percent != null ? s.cpu_percent + "%" : "—";
         const mem = s.memory ? s.memory.percent + "%" : "—";
+        const sim = s.simulated ? ' <span class="metric-card__tag">Simulated</span>' : "";
+        const err = s.error ? `<div class="metric-card__hint">${esc(s.error)}</div>` : "";
+        const href = s.server_id ? `/servers/${s.server_id}` : "#";
         return `<tr>
-          <td>${s.name || "—"}</td>
-          <td>${s.server_type || "—"}</td>
-          <td><span class="status-pill ${statusClass}">${s.status || "—"}</span></td>
+          <td><a class="server-link" href="${href}">${esc(s.name || "—")}</a>${sim}${err}</td>
+          <td>${esc(s.server_type || "—")}</td>
+          <td><span class="status-pill ${statusClass}">${esc(s.status || "—")}</span></td>
           <td>${cpu}</td>
           <td>${mem}</td>
         </tr>`;
@@ -210,8 +217,9 @@
   }
 
   function applyMetrics(payload) {
-    const servers = payload.servers || [];
+    const servers = payload.servers || (payload.server_id ? [payload] : []);
     const local =
+      (cfg.focusId && servers.find((s) => s.server_id === cfg.focusId)) ||
       servers.find((s) => s.server_type === "local") ||
       servers[0] ||
       null;
@@ -225,6 +233,8 @@
     pill.className = "status-pill " + (online ? "status-pill--online" : "status-pill--offline");
     dot.className = "status-dot " + (online ? "status-dot--online" : "status-dot--offline");
     statusText.textContent = online ? "Online" : "Offline";
+    const simBadge = document.getElementById("sim-badge");
+    if (simBadge) simBadge.hidden = !local.simulated;
 
     document.getElementById("meta-name").textContent = local.name || "—";
     document.getElementById("meta-hostname").textContent = local.hostname || "—";

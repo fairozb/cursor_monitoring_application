@@ -6,10 +6,13 @@ import logging
 import os
 import socket
 
+from app.config import demo_mode_enabled
 from app.db import (
+    count_servers,
     create_server,
     create_user,
     get_local_server,
+    get_server_by_name,
     get_user_by_username,
     init_db,
     update_server_host,
@@ -69,3 +72,26 @@ def bootstrap_local_server() -> None:
         logger.info("Registered local Jumpbox server '%s'.", display_name)
     else:
         update_server_host(existing["id"], display_name, ip_address)
+
+
+DEMO_SERVERS = (
+    ("Simulated-Web-01", "10.0.0.11"),
+    ("Simulated-App-01", "10.0.0.12"),
+    ("Simulated-DB-01", "10.0.0.13"),
+)
+
+
+def bootstrap_demo_servers() -> None:
+    """Seed labelled simulated hosts when DEMO_MODE is enabled and capacity remains."""
+    if not demo_mode_enabled():
+        return
+    init_db()
+    total = count_servers()
+    for name, host in DEMO_SERVERS:
+        if total >= 5:
+            break
+        if get_server_by_name(name) is not None:
+            continue
+        create_server(name=name, host=host, server_type="demo")
+        total += 1
+        logger.info("Registered simulated server '%s'.", name)

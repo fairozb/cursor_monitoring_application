@@ -1,12 +1,13 @@
 # Demo Infrastructure Monitoring Application
 
 Local demo dashboard for Linux Jumpbox monitoring.  
-**Status:** Admin sign-in + **real-time local metrics (psutil)**. Remote SSH is not implemented yet.
+**Status:** Local psutil monitoring, inventory, optional SSH remotes, and labelled demo servers.
 
 | Item | Value |
 |------|--------|
 | Bind | `127.0.0.1:5000` |
-| Stack | Python, Flask, Flask-WTF, SQLite, Bootstrap, Chart.js, psutil |
+| Stack | Python, Flask, Flask-WTF, SQLite, Bootstrap, Chart.js, psutil, Paramiko |
+| Deploy | Local Jumpbox only (`python run.py`). No Docker. |
 | Docs | [requirements](docs/requirements.md) · [plan](docs/implementation_plan.md) · [TODO](docs/TODO.md) · [schema](docs/schema.md) |
 
 ## Security notes
@@ -46,9 +47,50 @@ On startup, if `ADMIN_PASSWORD` is set, the admin password hash is created or **
 ## Local monitoring
 
 - Collector: `app/monitoring/local_collector.py` (psutil, read-only)
-- Dashboard polls `GET /api/servers/metrics` every **10 seconds** (Chart.js); **Refresh now** for manual update
+- Dashboard and server detail poll every **10 seconds** (Chart.js); **Refresh now** for a manual update
 - Threshold colours: green &lt; 70%, orange 70–85%, red ≥ 85%
-- Online when local collection succeeds
+- Click a server name to open its detail page
+- Online when collection succeeds; a failed host stays offline and does not stop the others
+
+## Inventory
+
+Open **Servers** (`/inventory`) while signed in.
+
+| Field | Meaning |
+|-------|---------|
+| Name | Display name |
+| Type | `remote` (SSH) or `demo` (simulated, labelled) |
+| Host | Hostname or IP |
+| SSH port / username / key path | Remote only. The database stores the **path**, not the key |
+
+The local Jumpbox is registered automatically and is not removed. The demo cap is **5** servers. Add and remove forms use CSRF.
+
+## Remote SSH
+
+Set a remote row with a private key path on this Jumpbox. Before it can come online:
+
+1. The key file must exist and be readable by your user.
+2. The host key must already be in `~/.ssh/known_hosts` (connect once with `ssh`). Unknown keys are rejected.
+3. Optional env: `SSH_CONNECT_TIMEOUT` (default 10) and `SSH_COMMAND_TIMEOUT` (default 8).
+
+Commands are read-only (`/proc`, `free`, `df`, `ss`). No password SSH.
+
+### If a remote stays offline
+
+| Message | What to check |
+|---------|----------------|
+| SSH connection timed out | Host, port, network path, timeout values |
+| SSH private key file is missing | Key path on the Jumpbox |
+| Host key verification failed | `known_hosts` entry for that host |
+| SSH authentication failed | Username and key pair |
+
+## Demo mode
+
+Set `DEMO_MODE=true` to seed **Simulated-Web-01**, **Simulated-App-01**, and **Simulated-DB-01** when there is room under the 5-server cap. They are marked **Simulated** and do not use SSH. Set `DEMO_MODE=false` to stop seeding new ones (existing rows remain until removed).
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs `pytest` on push and pull request with dummy `SECRET_KEY` and `ADMIN_PASSWORD`. It does not need a Jumpbox or real SSH keys. The job fails if tests fail.
 
 ### Authenticated API
 
